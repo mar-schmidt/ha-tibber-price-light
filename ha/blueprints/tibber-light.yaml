@@ -1,0 +1,35 @@
+blueprint:
+  name: Tibber Light
+  description: Change the color of a lamp based on the current Tibber price
+  domain: automation
+  input:
+    tibber_price_descriptor:
+      name: Tibber Price Descriptor
+      description: The Tibber price descriptor you wish to track.
+      selector:
+        entity:
+          integration: tibber
+          domain: sensor
+          multiple: false
+    target_light:
+      name: Light
+      description: The light you wish to use as the indicator
+      selector:
+        target:
+          entity:
+            domain: light
+  source_url: https://github.com/amberelectric/public-api/blob/main/home-assistant/blueprints/light.yaml
+trigger:
+- platform: state
+  entity_id: !input tibber_price_descriptor
+  attribute: price_level
+action:
+- variables:
+    price_descriptor: '{{ trigger.to_state.attributes.price_level }}'
+- service: light.turn_on
+  target: !input target_light
+  data:
+    color_name: "{% if price_descriptor == 'VERY_EXPENSIVE' %}\n  orangered\n{% elif price_descriptor
+      == 'EXPENSIVE' %}\n  orangered\n{% elif price_descriptor == 'NORMAL' %}\n  orange\n{%
+      elif price_descriptor == 'CHEAP' %}\n  orange\n{% elif price_descriptor == 'VERY_CHEAP'
+      %}\n  chartreuse\n{% endif %}\n"
